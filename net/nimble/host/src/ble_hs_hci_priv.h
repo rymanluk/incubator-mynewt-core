@@ -171,6 +171,12 @@ int ble_hs_hci_cmd_build_le_set_ext_scan_params(uint8_t own_addr_type,
                                                struct ble_hs_hci_ext_scan_param *params[],
                                                uint8_t *dst, uint16_t dst_len);
 
+int ble_hs_hci_cmd_build_le_set_ext_scan_enable(uint8_t enable,
+                                                uint8_t filter_dups,
+                                                uint16_t duration,
+                                                uint16_t period,
+                                                uint8_t *dst, uint16_t dst_len);
+
 int ble_hs_hci_cmd_build_le_enh_recv_test(uint8_t rx_chan, uint8_t phy,
                                       uint8_t mod_idx,
                                       uint8_t *dst, uint16_t dst_len);
