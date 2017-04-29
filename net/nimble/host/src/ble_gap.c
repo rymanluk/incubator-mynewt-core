@@ -3297,3 +3297,20 @@ err:
 
     return rc;
 }
+
+int
+ble_gap_set_random_addr(const uint8_t *addr)
+{
+    uint8_t buf[BLE_HCI_CMD_HDR_LEN + BLE_HCI_SET_RAND_ADDR_LEN];
+    int rc;
+
+    /* set the address in the controller */
+
+    rc = ble_hs_hci_cmd_build_set_random_addr(addr, buf, sizeof(buf));
+    if (rc != 0) {
+        return rc;
+    }
+
+    rc = ble_hs_hci_cmd_tx_empty_ack(buf);
+    return rc;
+}
