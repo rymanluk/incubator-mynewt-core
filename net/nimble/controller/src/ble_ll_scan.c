@@ -669,7 +669,7 @@ static uint32_t
 ble_ll_scan_get_current_scan_win(struct ble_ll_scan_sm *scansm, uint32_t cputime)
 {
     uint32_t itvl;
-    struct ble_ll_scan_phy_data *scanphy = &scansm->phy_data[scansm->cur_phy];
+    struct ble_ll_scan_params *scanphy = &scansm->phy_data[scansm->cur_phy];
 
     /* Well, in case we missed to schedule scan, lets move to next stan interval.
      */
@@ -1500,6 +1500,16 @@ ble_ll_set_ext_scan_params(uint8_t *cmd)
 
         /* That means user whats to use this PHY for scanning */
         coded->configured = 1;
+    }
+
+    /* For now we don't accept request for continuous scan if 2 PHYs are
+     * requested.
+     */
+    if ((cmd[2] ==
+            (BLE_HCI_LE_PHY_1M_PREF_MASK | BLE_HCI_LE_PHY_CODED_PREF_MASK)) &&
+                ((uncoded->scan_itvl == uncoded->scan_window) ||
+                (coded->scan_itvl == coded-> scan_window))) {
+            return BLE_ERR_INV_HCI_CMD_PARMS;
     }
 
     memcpy(g_ble_ll_scan_params, new_params, sizeof(new_params));
