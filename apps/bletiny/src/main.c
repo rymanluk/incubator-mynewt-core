@@ -1387,6 +1387,21 @@ bletiny_scan(uint8_t own_addr_type, int32_t duration_ms,
 }
 
 int
+bletiny_ext_scan(uint8_t own_addr_type, uint16_t duration, uint16_t period,
+                 uint8_t filter_duplicates, uint8_t filter_policy,
+                 uint8_t limited,
+                 const struct ble_gap_ext_disc_params *uncoded_params,
+                 const struct ble_gap_ext_disc_params *coded_params)
+{
+    int rc;
+
+    rc = ble_gap_ext_disc(own_addr_type, duration, period, filter_duplicates,
+                          filter_policy, limited, uncoded_params, coded_params,
+                          bletiny_gap_event, NULL);
+    return rc;
+}
+
+int
 bletiny_scan_cancel(void)
 {
     int rc;
