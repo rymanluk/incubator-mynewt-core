@@ -1238,6 +1238,9 @@ ble_ll_pdu_tx_time_get_coded(int payload_len, int s)
             s * ((BLE_LL_PDU_HDR_LEN + payload_len) * 8 + 24 + 3); /* PDU + CRC + TERM2 */
 }
 
+static uint16_t g_ble_ll_pdu_header_time[BLE_PHY_NUM_MODULATIONS];
+
+
 uint32_t
 ble_ll_pdu_tx_time_get(uint16_t payload_len, int phy_mode)
 {
