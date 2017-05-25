@@ -47,6 +47,10 @@ extern "C" {
 #define BLE_LL_SCHED_DIRECT_ADV_MAX_USECS   (502)
 #define BLE_LL_SCHED_MAX_ADV_PDU_USECS      (376)
 
+#if MYNEWT_VAL(BLE_EXT_SCAN_SUPPORT)
+#define BLE_LL_SCHED_EXT_ADV_MIN_CODED_S8_USECS     (720)
+#define BLE_LL_SCHED_EXT_ADV_MAX_CODED_S8_USECS     (17040)
+#endif
 /*
  * This is the offset from the start of the scheduled item until the actual
  * tx/rx should occur, in ticks.
@@ -69,6 +73,7 @@ extern uint8_t g_ble_ll_sched_offset_ticks;
 #define BLE_LL_SCHED_TYPE_ADV       (1)
 #define BLE_LL_SCHED_TYPE_SCAN      (2)
 #define BLE_LL_SCHED_TYPE_CONN      (3)
+#define BLE_LL_SCHED_TYPE_AUX_SCAN  (4)
 
 /* Return values for schedule callback. */
 #define BLE_LL_SCHED_STATE_RUNNING  (0)
@@ -136,6 +141,16 @@ int ble_ll_sched_conn_reschedule(struct ble_ll_conn_sm * connsm);
  * @return int 0: No events are scheduled 1: there is an upcoming event
  */
 int ble_ll_sched_next_time(uint32_t *next_event_time);
+
+#if MYNEWT_VAL(BLE_EXT_SCAN_SUPPORT)
+struct ble_ll_scan_sm;
+struct ble_ll_aux_data;
+int ble_ll_sched_aux_scan(struct ble_mbuf_hdr *ble_hdr,
+                          struct ble_ll_scan_sm *scansm,
+                          struct ble_ll_aux_data *aux_scan);
+
+int ble_ll_sched_is_busy_in(uint32_t usec);
+#endif
 
 /* Stop the scheduler */
 void ble_ll_sched_stop(void);
