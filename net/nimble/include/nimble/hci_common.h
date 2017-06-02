@@ -489,6 +489,7 @@ extern "C" {
 
 /* --- LE extended create connection (OCF 0x0043) */
 #define BLE_HCI_LE_EXT_CREATE_CONN_LEN              BLE_HCI_VARIABLE_LEN
+#define BLE_HCI_LE_EXT_CREATE_CONN_BASE_LEN         (10)
 
 /* --- LE periodic advertising create sync (OCF 0x0044) */
 #define BLE_HCI_LE_PER_ADV_CREATE_SYNC_LEN          (14)
@@ -763,6 +764,31 @@ struct hci_create_conn
     uint16_t min_ce_len;
     uint16_t max_ce_len;
 };
+
+#if MYNEWT_VAL(BLE_EXT_SCAN_SUPPORT)
+/* LE create connection command (ocf=0x0043). */
+struct hci_ext_conn_params
+{
+    uint16_t scan_itvl;
+    uint16_t scan_window;
+    uint16_t conn_itvl_min;
+    uint16_t conn_itvl_max;
+    uint16_t conn_latency;
+    uint16_t supervision_timeout;
+    uint16_t min_ce_len;
+    uint16_t max_ce_len;
+};
+
+struct hci_ext_create_conn
+{
+    uint8_t filter_policy;
+    uint8_t own_addr_type;
+    uint8_t peer_addr_type;
+    uint8_t peer_addr[BLE_DEV_ADDR_LEN];
+    uint8_t init_phy_mask;
+    struct hci_ext_conn_params params[3];
+};
+#endif
 
 /* LE connection update command (ocf=0x0013). */
 struct hci_conn_update
