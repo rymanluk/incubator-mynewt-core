@@ -42,6 +42,13 @@ struct ble_hs_hci_ext_scan_param {
     uint16_t scan_window;
 };
 
+struct ble_hs_hci_ext_conn_params {
+    uint16_t scan_itvl;
+    uint16_t scan_window;
+    uint16_t conn_itvl;
+    uint16_t conn_windows;
+};
+
 int ble_hs_hci_cmd_tx(void *cmd, void *evt_buf, uint8_t evt_buf_len,
                       uint8_t *out_evt_buf_len);
 int ble_hs_hci_cmd_tx_empty_ack(void *cmd);
@@ -200,6 +207,9 @@ int ble_hs_hci_cmd_build_le_set_default_phy(uint8_t tx_phys_mask,
 int ble_hs_hci_cmd_build_le_set_phy(uint16_t conn_handle, uint8_t tx_phys_mask,
                                     uint8_t rx_phys_mask, uint16_t phy_opts,
                                     uint8_t *dst, int dst_len);
+
+int ble_hs_hci_cmd_build_le_ext_create_conn(const struct hci_ext_create_conn *hcc,
+                                            uint8_t *cmd, int cmd_len);
 #ifdef __cplusplus
 }
 #endif

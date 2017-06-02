@@ -495,6 +495,7 @@ extern "C" {
 
 /* --- LE extended create connection (OCF 0x0043) */
 #define BLE_HCI_LE_EXT_CREATE_CONN_LEN              BLE_HCI_VARIABLE_LEN
+#define BLE_HCI_LE_EXT_CREATE_CONN_BASE_LEN         (10)
 
 /* --- LE periodic advertising create sync (OCF 0x0044) */
 #define BLE_HCI_LE_PER_ADV_CREATE_SYNC_LEN          (14)
