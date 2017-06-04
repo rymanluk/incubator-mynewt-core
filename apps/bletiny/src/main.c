@@ -890,6 +890,84 @@ bletiny_on_write_reliable(uint16_t conn_handle,
     return 0;
 }
 
+static void
+bletiny_decode_event_type(uint8_t ext_disc, uint16_t event_type, uint8_t *is_direct_legacy)
+{
+    uint8_t legacy_pdu = 0;
+    uint8_t complete_info;
+
+    *is_direct_legacy = 0;
+
+    if (ext_disc == BLE_GAP_EVENT_EXT_DISC &&
+            (event_type & BLE_HCI_ADV_LEGACY_MASK)) {
+        legacy_pdu = 1;
+    }
+
+    if ((ext_disc != BLE_GAP_EVENT_EXT_DISC) || legacy_pdu) {
+
+        console_printf("\n");
+
+        if (legacy_pdu) {
+            console_printf("Legacy PDU: ");
+        }
+        switch (event_type) {
+        case BLE_HCI_ADV_TYPE_ADV_IND:
+        case BLE_HCI_LEGACY_ADV_EVTYPE_ADV_IND:
+            console_printf("Advertising ind:");
+            break;
+        case BLE_HCI_ADV_TYPE_ADV_DIRECT_IND_LD:
+        case BLE_HCI_ADV_TYPE_ADV_DIRECT_IND_HD:
+        case BLE_HCI_LEGACY_ADV_EVTYPE_ADV_DIRECT_IND:
+            console_printf("Direct adv:");
+            *is_direct_legacy = 1;
+            break;
+        case BLE_HCI_ADV_TYPE_ADV_SCAN_IND:
+        case BLE_HCI_LEGACY_ADV_EVTYPE_ADV_SCAN_IND:
+            console_printf("Scan ind:");
+            break;
+        case BLE_HCI_ADV_TYPE_ADV_NONCONN_IND:
+        case BLE_HCI_LEGACY_ADV_EVTYPE_ADV_NONCON_IND:
+            console_printf("Non-connectable ind:");
+            break;
+        default:
+            console_printf("Unknow: %d", event_type);
+            break;
+        }
+        return;
+    }
+
+    console_printf("\nExtended adv: ");
+    if (event_type & BLE_HCI_ADV_CONN_MASK) {
+        console_printf("'conn' ");
+    }
+    if (event_type & BLE_HCI_ADV_SCAN_MASK) {
+        console_printf("'scan' ");
+    }
+    if (event_type & BLE_HCI_ADV_DIRECT_MASK) {
+        console_printf("'dir' ");
+    }
+
+    if (event_type & BLE_HCI_ADV_SCAN_RSP_MASK) {
+        console_printf("'scan rsp' ");
+    }
+
+    complete_info = (event_type >> 5) & 0xFF;
+    switch(complete_info) {
+    case BLE_HCI_ADV_COMPLETED:
+        console_printf("completed\n");
+        break;
+    case BLE_HCI_ADV_INCOMPLETE:
+        console_printf("incompleted\n");
+        break;
+    case BLE_HCI_ADV_CORUPTED:
+        console_printf("corupted\n");
+        break;
+    default:
+        console_printf("reserved %d", complete_info);
+        break;
+    }
+}
+
 static int
 bletiny_gap_event(struct ble_gap_event *event, void *arg)
 {
@@ -897,6 +975,7 @@ bletiny_gap_event(struct ble_gap_event *event, void *arg)
     struct ble_hs_adv_fields fields;
     int conn_idx;
     int rc;
+    uint8_t direct_legacy;
 
     switch (event->type) {
     case BLE_GAP_EVENT_CONNECT:
@@ -923,17 +1002,20 @@ bletiny_gap_event(struct ble_gap_event *event, void *arg)
         return 0;
 
     case BLE_GAP_EVENT_DISC:
+    case BLE_GAP_EVENT_EXT_DISC:
         console_printf("received advertisement; event_type=%d rssi=%d "
                        "addr_type=%d addr=", event->disc.event_type,
                        event->disc.rssi, event->disc.addr.type);
         print_addr(event->disc.addr.val);
 
+
+        bletiny_decode_event_type(event->type, event->disc.event_type,
+                                 &direct_legacy);
         /*
          * There is no adv data to print in case of connectable
          * directed advertising
          */
-        if (event->disc.event_type == BLE_HCI_ADV_TYPE_ADV_DIRECT_IND_HD ||
-                event->disc.event_type == BLE_HCI_ADV_TYPE_ADV_DIRECT_IND_LD) {
+        if (direct_legacy) {
                 console_printf("\nConnectable directed advertising event\n");
                 return 0;
         }
