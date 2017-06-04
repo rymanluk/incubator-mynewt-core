@@ -665,6 +665,13 @@ ble_gap_master_connect_cancelled(void)
     }
 }
 
+
+static int
+ble_gap_is_extended_disc(void)
+{
+    return ble_gap_master.disc.extended;
+}
+
 static void
 ble_gap_disc_report(struct ble_gap_disc_desc *desc)
 {
@@ -675,7 +682,11 @@ ble_gap_disc_report(struct ble_gap_disc_desc *desc)
 
     if (state.cb != NULL) {
         memset(&event, 0, sizeof event);
-        event.type = BLE_GAP_EVENT_DISC;
+        if (ble_gap_is_extended_disc()) {
+            event.type = BLE_GAP_EVENT_EXT_DISC;
+        } else {
+            event.type = BLE_GAP_EVENT_DISC;
+        }
         event.disc = *desc;
 
         state.cb(&event, state.cb_arg);
@@ -2207,12 +2218,6 @@ ble_gap_ext_disc_enable_tx(uint8_t enable, uint8_t filter_duplicates,
     return ble_hs_hci_cmd_tx_empty_ack(buf);
 }
 
-static int
-ble_gap_is_extended_disc(void)
-{
-    return ble_gap_master.disc.extended;
-}
-
 /**
  * Cancels the discovery procedure currently in progress.  A success return
  * code indicates that scanning has been fully aborted; a new discovery or
@@ -2510,6 +2515,7 @@ ble_gap_disc(uint8_t own_addr_type, int32_t duration_ms,
 
     ble_gap_master.disc.limited = params.limited;
     ble_gap_master.cb = cb;
+    ble_gap_master.disc.extended = 0;
     ble_gap_master.cb_arg = cb_arg;
 
     BLE_HS_LOG(INFO, "GAP procedure initiated: discovery; ");

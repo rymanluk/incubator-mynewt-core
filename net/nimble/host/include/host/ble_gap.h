@@ -112,6 +112,7 @@ struct hci_conn_update;
 #define BLE_GAP_EVENT_MTU                   15
 #define BLE_GAP_EVENT_IDENTITY_RESOLVED     16
 #define BLE_GAP_EVENT_PHY_UPDATE_COMPLETE   17
+#define BLE_GAP_EVENT_EXT_DISC              18
 
 /*** Reason codes for the subscribe GAP event. */
 
@@ -219,7 +220,7 @@ struct ble_gap_passkey_params {
 
 struct ble_gap_disc_desc {
     /*** Common fields. */
-    uint8_t event_type;
+    uint16_t event_type;
     uint8_t length_data;
     ble_addr_t addr;
     int8_t rssi;
@@ -230,6 +231,9 @@ struct ble_gap_disc_desc {
      * direct address fields are not present.
      */
     ble_addr_t direct_addr;
+#if MYNEWT_VAL(BLE_EXT_SCAN_SUPPORT)
+    uint8_t tx_power;
+#endif
 };
 
 /**
