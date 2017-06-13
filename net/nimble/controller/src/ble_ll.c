@@ -195,7 +195,7 @@ static void ble_ll_event_tx_pkt(struct os_event *ev);
 static void ble_ll_event_dbuf_overflow(struct os_event *ev);
 
 /* The BLE LL task data structure */
-#define BLE_LL_STACK_SIZE   (80)
+#define BLE_LL_STACK_SIZE   (512)
 struct os_task g_ble_ll_task;
 os_stack_t g_ble_ll_stack[BLE_LL_STACK_SIZE];
 
