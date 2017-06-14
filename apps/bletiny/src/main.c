@@ -891,7 +891,8 @@ bletiny_on_write_reliable(uint16_t conn_handle,
 }
 
 static void
-bletiny_decode_event_type(uint8_t ext_disc, uint16_t event_type, uint8_t *is_direct_legacy)
+bletiny_decode_event_type(uint8_t ext_disc, uint16_t event_type,
+                          uint8_t *is_direct_legacy, uint8_t *is_legacy)
 {
     uint8_t legacy_pdu = 0;
     uint8_t complete_info;
@@ -902,6 +903,8 @@ bletiny_decode_event_type(uint8_t ext_disc, uint16_t event_type, uint8_t *is_dir
             (event_type & BLE_HCI_ADV_LEGACY_MASK)) {
         legacy_pdu = 1;
     }
+
+    *is_legacy = legacy_pdu;
 
     if ((ext_disc != BLE_GAP_EVENT_EXT_DISC) || legacy_pdu) {
 
@@ -976,6 +979,7 @@ bletiny_gap_event(struct ble_gap_event *event, void *arg)
     int conn_idx;
     int rc;
     uint8_t direct_legacy;
+    uint8_t is_legacy;
 
     switch (event->type) {
     case BLE_GAP_EVENT_CONNECT:
@@ -1010,7 +1014,11 @@ bletiny_gap_event(struct ble_gap_event *event, void *arg)
 
 
         bletiny_decode_event_type(event->type, event->disc.event_type,
-                                 &direct_legacy);
+                                 &direct_legacy, &is_legacy);
+
+        if (is_legacy) {
+            return 0;
+        }
         /*
          * There is no adv data to print in case of connectable
          * directed advertising
