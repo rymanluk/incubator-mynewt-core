@@ -1441,6 +1441,7 @@ ble_hs_hci_cmd_build_le_enh_trans_test(uint8_t tx_chan, uint8_t test_data_len,
                                                       phy, dst);
 }
 
+#if MYNEWT_VAL(BLE_EXT_ADV)
 static int
 ble_hs_hci_check_scan_params(uint16_t scan_itvl, uint16_t scan_window)
 {
@@ -1582,25 +1583,6 @@ ble_hs_hci_cmd_build_le_set_ext_scan_enable(uint8_t enable,
         return ble_hs_hci_cmd_body_le_set_ext_scan_enable(enable,
                                                           filter_dups,
                                                           duration, period, dst);
-}
-
-static int
-ble_hs_hci_cmd_body_le_set_priv_mode(const uint8_t *addr, uint8_t addr_type,
-                                     uint8_t priv_mode, uint8_t *dst)
-{
-    /* In this command addr type can be either:
-     *  - public identity (0x00)
-     *  - random (static) identity (0x01)
-     */
-    if (addr_type > BLE_ADDR_RANDOM) {
-        return BLE_ERR_INV_HCI_CMD_PARMS;
-    }
-
-    dst[0] = addr_type;
-    memcpy(dst + 1, addr, BLE_DEV_ADDR_LEN);
-    dst[7] = priv_mode;
-
-    return 0;
 }
 
 static int
@@ -1760,7 +1742,26 @@ ble_hs_hci_cmd_build_le_ext_create_conn(const struct hci_ext_create_conn *hcc,
     return ble_hs_hci_cmd_body_le_ext_create_conn(hcc,
                                                   cmd + BLE_HCI_CMD_HDR_LEN);
 }
+#endif
 
+static int
+ble_hs_hci_cmd_body_le_set_priv_mode(const uint8_t *addr, uint8_t addr_type,
+                                     uint8_t priv_mode, uint8_t *dst)
+{
+    /* In this command addr type can be either:
+     *  - public identity (0x00)
+     *  - random (static) identity (0x01)
+     */
+    if (addr_type > BLE_ADDR_RANDOM) {
+        return BLE_ERR_INV_HCI_CMD_PARMS;
+    }
+
+    dst[0] = addr_type;
+    memcpy(dst + 1, addr, BLE_DEV_ADDR_LEN);
+    dst[7] = priv_mode;
+
+    return 0;
+}
 /*
  *  OGF=0x08 OCF=0x004e
  */

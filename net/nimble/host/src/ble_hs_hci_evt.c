@@ -458,6 +458,7 @@ ble_hs_hci_evt_le_dir_adv_rpt(uint8_t subevent, uint8_t *data, int len)
 static int
 ble_hs_hci_evt_le_ext_adv_rpt(uint8_t subevent, uint8_t *data, int len)
 {
+#if MYNEWT_VAL(BLE_EXT_ADV)
     struct ble_gap_disc_desc desc = {};
     struct hci_ext_adv_report *ext_adv;
     struct hci_ext_adv_report_param *params;
@@ -494,7 +495,7 @@ ble_hs_hci_evt_le_ext_adv_rpt(uint8_t subevent, uint8_t *data, int len)
         ble_gap_rx_adv_report(&desc);
         params += 1;
     }
-
+#endif
     return 0;
 }
 

@@ -325,3 +325,8 @@ syscfg.defs:
             Number of client characteristic configuration descriptors to
             persist before recycling old ones.
         value: 16
+    BLE_EXT_ADV:
+        description: >
+            This enables extended advertising feature.
+        value: 0
+

@@ -231,7 +231,7 @@ struct ble_gap_disc_desc {
      * direct address fields are not present.
      */
     ble_addr_t direct_addr;
-#if MYNEWT_VAL(BLE_EXT_SCAN_SUPPORT)
+#if MYNEWT_VAL(BLE_EXT_ADV)
     uint8_t tx_power;
 #endif
 };

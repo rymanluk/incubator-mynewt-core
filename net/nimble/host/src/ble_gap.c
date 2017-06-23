@@ -2166,6 +2166,7 @@ ble_gap_disc_tx_params(uint8_t own_addr_type,
     return 0;
 }
 
+#if MYNEWT_VAL(BLE_EXT_ADV)
 static int
 ble_gap_ext_disc_tx_params(uint8_t own_addr_type, uint8_t filter_policy,
                        const struct ble_hs_hci_ext_scan_param *uncoded_params,
@@ -2217,6 +2218,7 @@ ble_gap_ext_disc_enable_tx(uint8_t enable, uint8_t filter_duplicates,
                                                 buf, sizeof buf);
     return ble_hs_hci_cmd_tx_empty_ack(buf);
 }
+#endif
 
 /**
  * Cancels the discovery procedure currently in progress.  A success return
@@ -2245,7 +2247,11 @@ ble_gap_disc_cancel(void)
     if (!ble_gap_is_extended_disc()) {
         rc = ble_gap_disc_enable_tx(0, 0);
     } else {
+#if MYNEWT_VAL(BLE_EXT_ADV)
         rc = ble_gap_ext_disc_enable_tx(0, 0, 0, 0);
+#else
+        assert(0);
+#endif
     }
     if (rc != 0) {
         goto done;
@@ -2263,6 +2269,25 @@ done:
     return rc;
 }
 
+static int
+ble_gap_disc_ext_validate(uint8_t own_addr_type)
+{
+    if (own_addr_type > BLE_HCI_ADV_OWN_ADDR_MAX) {
+        return BLE_HS_EINVAL;
+    }
+
+    if (ble_gap_conn_active()) {
+        return BLE_HS_EBUSY;
+    }
+
+    if (ble_gap_disc_active()) {
+        return BLE_HS_EALREADY;
+    }
+
+    return 0;
+}
+
+#if MYNEWT_VAL(BLE_EXT_ADV)
 static void
 ble_gap_ext_disc_fill_dflts(uint8_t limited,
                             struct ble_hs_hci_ext_scan_param *disc_params)
@@ -2284,24 +2309,6 @@ ble_gap_ext_disc_fill_dflts(uint8_t limited,
     }
 }
 
-static int
-ble_gap_disc_ext_validate(uint8_t own_addr_type)
-{
-    if (own_addr_type > BLE_HCI_ADV_OWN_ADDR_MAX) {
-        return BLE_HS_EINVAL;
-    }
-
-    if (ble_gap_conn_active()) {
-        return BLE_HS_EBUSY;
-    }
-
-    if (ble_gap_disc_active()) {
-        return BLE_HS_EALREADY;
-    }
-
-    return 0;
-}
-
 static void
 ble_gap_ext_scan_params_to_hci(const struct ble_gap_ext_disc_params *params,
                                struct ble_hs_hci_ext_scan_param *hci_params)
@@ -2318,6 +2325,7 @@ ble_gap_ext_scan_params_to_hci(const struct ble_gap_ext_disc_params *params,
     hci_params->scan_itvl = params->itvl;
     hci_params->scan_window = params->window;
 }
+#endif
 
 int
 ble_gap_ext_disc(uint8_t own_addr_type, uint16_t duration, uint16_t period,
@@ -2327,9 +2335,9 @@ ble_gap_ext_disc(uint8_t own_addr_type, uint16_t duration, uint16_t period,
                  const struct ble_gap_ext_disc_params *coded_params,
                  ble_gap_event_fn *cb, void *cb_arg)
 {
-#if !MYNEWT_VAL(BLE_ROLE_OBSERVER)
+#if !MYNEWT_VAL(BLE_ROLE_OBSERVER) || !MYNEWT_VAL(BLE_EXT_ADV)
     return BLE_HS_ENOTSUP;
-#endif
+#else
 
     struct ble_hs_hci_ext_scan_param ucp;
     struct ble_hs_hci_ext_scan_param cp;
@@ -2403,7 +2411,7 @@ done:
         STATS_INC(ble_gap_stats, discover_fail);
     }
     return rc;
-
+#endif
 }
 
 static void
@@ -2613,6 +2621,7 @@ ble_gap_conn_create_tx(uint8_t own_addr_type, const ble_addr_t *peer_addr,
     return 0;
 }
 
+#if MYNEWT_VAL(BLE_EXT_ADV)
 static void
 ble_gap_copy_params(struct hci_ext_conn_params *hcc_params,
                     const struct ble_gap_conn_params *gap_params)
@@ -2846,6 +2855,7 @@ done:
     }
     return rc;
 }
+#endif
 
 /**
  * Initiates a connect procedure.

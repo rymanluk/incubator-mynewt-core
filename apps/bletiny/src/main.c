@@ -1437,6 +1437,11 @@ bletiny_ext_conn_initiate(uint8_t own_addr_type, const ble_addr_t *peer_addr,
                           struct ble_gap_conn_params *phy_2m_params,
                           struct ble_gap_conn_params *phy_coded_params)
 {
+#if MYNEWT_VAL(BLE_EXT_ADV) == 0
+    console_printf("BLE extended advertising not supported.");
+    console_printf(" Configure nimble host to enable it\n");
+    return 0;
+#else
     int rc;
     uint8_t phy_mask = 0;
 
@@ -1457,6 +1462,7 @@ bletiny_ext_conn_initiate(uint8_t own_addr_type, const ble_addr_t *peer_addr,
                              bletiny_gap_event, NULL);
 
     return rc;
+#endif
 }
 
 int
