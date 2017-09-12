@@ -1081,7 +1081,7 @@ int bt_mesh_net_decode(struct os_mbuf *data, enum bt_mesh_net_if net_if,
 		       struct bt_mesh_net_rx *rx, struct os_mbuf *buf,
 		       struct net_buf_simple_state *state)
 {
-	if (data->om_len < 18) {
+	if (data->om_len < 14) {
 		BT_WARN("Dropping too short mesh packet (len %u)", data->om_len);
 		BT_WARN("%s", bt_hex(data->om_data, data->om_len));
 		return -EINVAL;
