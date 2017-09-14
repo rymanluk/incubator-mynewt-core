@@ -68,12 +68,72 @@ static const struct shell_cmd_help relay_set_help = {
     .params = relay_set_params,
 };
 
+static int
+cmd_send_msg(int argc, char **argv)
+{
+    uint8_t ttl;
+    uint16_t src_addr, dst_addr;
+    int rc;
+
+    rc = parse_arg_all(argc - 1, argv + 1);
+    if (rc != 0) {
+        return rc;
+    }
+
+    ttl = parse_arg_uint8("ttl", &rc);
+    if (rc != 0) {
+        console_printf("invalid 'ttl' parameter\n");
+        return rc;
+    }
+
+    src_addr = parse_arg_uint16("src", &rc);
+    if (rc != 0) {
+        console_printf("invalid 'src' parameter\n");
+        return rc;
+    }
+
+    dst_addr = parse_arg_uint16("dst", &rc);
+    if (rc != 0) {
+        console_printf("invalid 'dst' parameter\n");
+        return rc;
+    }
+
+    rc = blemesh_send_msg(ttl, src_addr, dst_addr);
+    if (rc != 0) {
+        console_printf("Message send failed\n");
+        return rc;
+    }
+
+    console_printf("Message send successful\n");
+    return rc;
+}
+
+static const struct shell_param send_msg_params[] = {
+    {"ttl", "usage: =<UINT8>"},
+    {"src", "usage: =<UINT16>"},
+    {"dst", "usage: =<UINT16>"},
+    {NULL, NULL}
+};
+
+static const struct shell_cmd_help send_msg_help = {
+    .summary = "send message",
+    .usage = NULL,
+    .params = send_msg_params,
+};
+
 static const struct shell_cmd mesh_commands[] = {
     {
         .sc_cmd = "relay-set",
         .sc_cmd_func = cmd_relay_set,
 #if MYNEWT_VAL(SHELL_CMD_HELP)
         .help = &relay_set_help,
+#endif
+    },
+    {
+        .sc_cmd = "send-msg",
+        .sc_cmd_func = cmd_send_msg,
+#if MYNEWT_VAL(SHELL_CMD_HELP)
+        .help = &send_msg_help,
 #endif
     },
     { NULL, NULL, NULL },
