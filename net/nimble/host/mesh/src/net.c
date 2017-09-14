@@ -797,18 +797,26 @@ int bt_mesh_net_send(struct bt_mesh_net_tx *tx, struct os_mbuf *buf,
 
 #if (MYNEWT_VAL(BLE_MESH_LOCAL_INTERFACE))
 	/* Deliver to local network interface if necessary */
-	if (bt_mesh_fixed_group_match(tx->ctx->addr) ||
-	    bt_mesh_elem_find(tx->ctx->addr)) {
+	if (bt_mesh_elem_find(tx->ctx->addr)) {
 		net_buf_put(&bt_mesh.local_queue, net_buf_ref(buf));
 		if (cb) {
 			cb(buf, 0);
 		}
 		k_work_submit(&bt_mesh.local_work);
+	} else if (bt_mesh_fixed_group_match(tx->ctx->addr)) {
+//		net_buf_put(&bt_mesh.local_queue, net_buf_ref(buf));
+//		if (cb) {
+//			cb(buf, 0);
+//		}
+//		k_work_submit(&bt_mesh.local_work);
+//
+        bt_mesh_adv_send(buf, cb);
 	} else {
-		bt_mesh_adv_send(buf, cb);
+        bt_mesh_adv_send(buf, cb);
 	}
-#else
-	bt_mesh_adv_send(buf, cb);
+
+#elif
+    bt_mesh_adv_send(buf, cb);
 #endif
 
 done:
