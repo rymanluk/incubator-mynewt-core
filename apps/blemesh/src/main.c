@@ -271,6 +271,12 @@ blemesh_send_msg(uint8_t ttl, uint16_t appkey_index, uint16_t src_addr,
     return mesh_net_send_msg(ttl, appkey_index, src_addr, dst_addr, buf, len);
 }
 
+void
+blemesh_iv_update(uint32_t iv_index, bool iv_update)
+{
+    mesh_iv_update(iv_index, iv_update);
+}
+
 static int output_number(bt_mesh_output_action action, uint32_t number)
 {
     console_printf("OOB Number: %lu\n", number);

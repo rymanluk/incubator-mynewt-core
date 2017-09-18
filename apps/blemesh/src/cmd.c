@@ -143,7 +143,57 @@ static const struct shell_cmd_help send_msg_help = {
     .params = send_msg_params,
 };
 
+static int
+cmd_iv_update(int argc, char **argv)
+{
+    int rc;
+    uint32_t index;
+    bool update;
+
+
+    rc = parse_arg_all(argc - 1, argv + 1);
+    if (rc != 0) {
+        return rc;
+    }
+
+    index = parse_arg_uint32("index", &rc);
+    if (rc != 0) {
+        console_printf("invalid 'index' parameter\n");
+        return rc;
+    }
+
+    update = parse_arg_bool("update", &rc);
+    if (rc != 0) {
+        console_printf("invalid 'update' parameter\n");
+        return rc;
+    }
+
+    blemesh_iv_update(index, update);
+
+    return rc;
+}
+
+static const struct shell_param iv_update_params[] = {
+    {"index", "usage: =<UINT32>"},
+    {"update", "usage: =<0-1>"},
+    {NULL, NULL}
+};
+
+static const struct shell_cmd_help iv_update_help = {
+    .summary = "iv update",
+    .usage = NULL,
+    .params = iv_update_params,
+};
+
+
 static const struct shell_cmd mesh_commands[] = {
+    {
+        .sc_cmd = "iv-update",
+        .sc_cmd_func = cmd_iv_update,
+#if MYNEWT_VAL(SHELL_CMD_HELP)
+        .help = &iv_update_help,
+#endif
+    },
     {
         .sc_cmd = "relay-set",
         .sc_cmd_func = cmd_relay_set,
