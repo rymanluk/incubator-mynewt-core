@@ -12,6 +12,7 @@
 
 #include "os/os_mbuf.h"
 #include "mesh/mesh.h"
+#include "mesh/pts.h"
 
 #include "syscfg/syscfg.h"
 #define BT_DBG_ENABLED MYNEWT_VAL(BLE_MESH_DEBUG_NET)

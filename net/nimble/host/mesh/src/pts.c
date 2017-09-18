@@ -66,3 +66,9 @@ mesh_net_send_msg(u8_t ttl, u16_t app_idx, u16_t src_addr, u16_t dst_addr,
 	os_mbuf_free_chain(msg);
 	return rc;
 }
+
+void
+mesh_iv_update(u32_t iv_index, bool iv_update)
+{
+	bt_mesh_iv_update(iv_index, iv_update);
+}

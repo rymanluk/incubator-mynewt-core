@@ -24,5 +24,6 @@
 
 int mesh_net_send_msg(u8_t ttl, u16_t app_idx, u16_t src_addr, u16_t dst_addr,
 		      u8_t *buf, u16_t len);
+void mesh_iv_update(u32_t iv_index, bool iv_update);
 
 #endif
