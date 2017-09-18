@@ -32,6 +32,44 @@
 
 
 static int
+cmd_low_power_set(int argc, char **argv)
+{
+    uint8_t enable;
+    int rc;
+
+    rc = parse_arg_all(argc - 1, argv + 1);
+    if (rc != 0) {
+        return rc;
+    }
+
+    enable = parse_arg_uint8("enable", &rc);
+    if (rc != 0) {
+        console_printf("invalid 'enable' parameter\n");
+        return rc;
+    }
+
+    rc = blemesh_lpn_set(enable);
+    if (rc != 0) {
+        console_printf("Low power set failed\n");
+        return rc;
+    }
+
+    console_printf("Low power set successful\n");
+    return rc;
+}
+
+static const struct shell_param low_power_set_params[] = {
+    {"enable", "usage: =<UINT8>"},
+    {NULL, NULL}
+};
+
+static const struct shell_cmd_help low_power_set_help = {
+    .summary = "set low power configuration",
+    .usage = NULL,
+    .params = low_power_set_params,
+};
+
+static int
 cmd_relay_set(int argc, char **argv)
 {
     uint8_t enable;
@@ -192,6 +230,13 @@ static const struct shell_cmd mesh_commands[] = {
         .sc_cmd_func = cmd_iv_update,
 #if MYNEWT_VAL(SHELL_CMD_HELP)
         .help = &iv_update_help,
+#endif
+    },
+    {
+        .sc_cmd = "low-power-set",
+        .sc_cmd_func = cmd_low_power_set,
+#if MYNEWT_VAL(SHELL_CMD_HELP)
+        .help = &low_power_set_help,
 #endif
     },
     {
