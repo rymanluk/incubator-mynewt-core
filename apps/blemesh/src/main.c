@@ -194,10 +194,17 @@ static void
 bleprph_on_sync(void)
 {
     int err;
+    uint8_t addr_type;
 
     console_printf("Bluetooth initialized\n");
 
-    err = bt_mesh_init(BLE_ADDR_PUBLIC, &prov, &comp);
+    /* Use privacy */
+    err = ble_hs_id_infer_auto(1, &addr_type);
+    assert(err == 0);
+    err = ble_hs_id_use_addr(addr_type);
+    assert(err == 0);
+
+    err = bt_mesh_init(addr_type, &prov, &comp);
     if (err) {
         console_printf("Initializing mesh failed (err %d)\n", err);
         return;
@@ -209,9 +216,6 @@ bleprph_on_sync(void)
 int
 main(void)
 {
-    /* Set initial BLE device address. */
-    memcpy(g_dev_addr, (uint8_t[6]){0x0a, 0x0a, 0x0a, 0x0a, 0x0a, 0x0a}, 6);
-
     /* Initialize OS */
     sysinit();
 
