@@ -3057,6 +3057,9 @@ void bt_mesh_heartbeat(u16_t src, u16_t dst, u8_t hops, u16_t feat)
 {
 	struct bt_mesh_cfg *cfg = conf;
 
+	BT_DBG("src 0x%04x dst 0x%04x TTL %u InitTTL %u (%u hop%s) feat 0x%04x",
+	       src, dst, hops, (hops == 1) ? "" : "s", feat);
+
 	if (!cfg) {
 		BT_WARN("No configuaration server context available");
 		return;
