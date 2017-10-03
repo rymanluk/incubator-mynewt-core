@@ -122,6 +122,10 @@ fault_test(struct bt_mesh_model *model, uint8_t test_id, uint16_t company_id)
         return -BLE_HS_EINVAL;
     }
 
+    if (test_id != 0x00) {
+        return -BLE_HS_EINVAL;
+    }
+
     has_reg_fault = true;
     bt_mesh_fault_update(model->elem);
 
