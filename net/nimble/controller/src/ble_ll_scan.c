@@ -2292,7 +2292,7 @@ ble_ll_scan_rx_pkt_in(uint8_t ptype, struct os_mbuf *om, struct ble_mbuf_hdr *hd
                                     &adv_addr, &txadd,
                                     &init_addr, &init_addr_type,
                                     &ext_adv_mode)) {
-       return;
+       goto scan_continue;
     }
 
     /* Check the scanner filter policy */
@@ -2382,7 +2382,7 @@ ble_ll_scan_rx_pkt_in(uint8_t ptype, struct os_mbuf *om, struct ble_mbuf_hdr *hd
 
         if (scansm->scan_rsp_pending) {
             if (!scan_rsp_chk) {
-                return;
+                goto scan_continue;
             }
 
             ble_ll_scan_req_backoff(scansm, 1);
