@@ -2007,18 +2007,22 @@ static void net_key_update(struct bt_mesh_model *model,
 	 */
 	switch (sub->kr_phase) {
 	case BT_MESH_KR_NORMAL:
+		BT_ERR("We are in phase Normal");
 		if (!memcmp(buf->om_data, sub->keys[0].net, 16)) {
 			return;
 		}
 		break;
 	case BT_MESH_KR_PHASE_1:
+		BT_ERR("We are in phase 1");
 		if (!memcmp(buf->om_data, sub->keys[1].net, 16)) {
+			BT_ERR("Net keys are the same");
 			send_net_key_status(model, ctx, idx, STATUS_SUCCESS);
 			return;
 		}
 		break;
 	case BT_MESH_KR_PHASE_2:
 	case BT_MESH_KR_PHASE_3:
+		BT_ERR("We are in phase 2 or 3");
 		send_net_key_status(model, ctx, idx, STATUS_CANNOT_UPDATE);
 		return;
 	}
