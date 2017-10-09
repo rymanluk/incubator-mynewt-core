@@ -759,9 +759,25 @@ ble_hs_hci_evt_acl_process(struct os_mbuf *om)
         rc = BLE_HS_ENOTCONN;
         reject_cid = -1;
     } else {
+#if 1
+        static char sixteenbytes[33];
+        sixteenbytes[0] = '\0';
+        for (int i = 0; i < 16 && i < hci_hdr.hdh_len; i++) {
+            uint8_t u8;
+            os_mbuf_copydata(om, i, 1, &u8);
+            sprintf(&sixteenbytes[i * 2], "%02x", u8);
+        }
+        console_printf("RX: conn_handle=%u len=%u data=%s\n",
+                       BLE_HCI_DATA_HANDLE(hci_hdr.hdh_handle_pb_bc),
+                       hci_hdr.hdh_len, sixteenbytes);
+        os_mbuf_free_chain(om);
+        om = NULL;
+        rc = BLE_HS_EAGAIN;
+#else
         /* Forward ACL data to L2CAP. */
         rc = ble_l2cap_rx(conn, &hci_hdr, om, &rx_cb, &reject_cid);
         om = NULL;
+#endif
     }
 
     ble_hs_unlock();
