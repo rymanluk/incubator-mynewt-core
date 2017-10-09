@@ -4359,8 +4359,52 @@ cmd_raw_send(int argc, char **argv)
     return bletiny_raw_send(conn, bytes);
 }
 
+static int
+cmd_raw_advd(int argc, char **argv)
+{
+    uint16_t bytes;
+    int rc;
+
+    if (argc > 1 && strcmp(argv[1], "help") == 0) {
+//        bletiny_l2cap_send_help();
+        return 0;
+    }
+
+    bytes = parse_arg_uint16("bytes", &rc);
+    if (rc != 0) {
+       console_printf("invalid 'bytes' parameter\n");
+       help_cmd_uint16("bytes");
+       return rc;
+    }
+
+    return bletiny_raw_advdsrsp(bytes, false);
+}
+
+static int
+cmd_raw_srsp(int argc, char **argv)
+{
+    uint16_t bytes;
+    int rc;
+
+    if (argc > 1 && strcmp(argv[1], "help") == 0) {
+//        bletiny_l2cap_send_help();
+        return 0;
+    }
+
+    bytes = parse_arg_uint16("bytes", &rc);
+    if (rc != 0) {
+       console_printf("invalid 'bytes' parameter\n");
+       help_cmd_uint16("bytes");
+       return rc;
+    }
+
+    return bletiny_raw_advdsrsp(bytes, true);
+}
+
 static const struct cmd_entry cmd_raw_entries[] = {
     { "send", cmd_raw_send },
+    { "advd", cmd_raw_advd },
+    { "srsp", cmd_raw_srsp },
     { NULL, NULL }
 };
 

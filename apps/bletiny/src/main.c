@@ -2054,6 +2054,36 @@ bletiny_raw_send(uint16_t conn_handle, uint16_t bytes)
 
     return rc;
 }
+
+int
+bletiny_raw_advdsrsp(uint16_t bytes, bool srsp)
+{
+    static uint8_t b[] = {0x00, 0x11,0x22,0x33,0x44,0x55,0x66,0x77,0x88, 0x99};
+    static uint8_t buf[MYNEWT_VAL(BLE_EXT_ADV_MAX_SIZE)];
+    int i;
+    int rc;
+
+    if (bytes > sizeof(buf)) {
+        bytes = sizeof(buf);
+    }
+
+    /* For the testing purpose we fill up buffer with known data, easy
+     * to validate on other side. In this loop we add as many full chunks as we
+     * can
+     */
+    for (i = 0; i < bytes; i+=sizeof(b)) {
+        memcpy(&buf[i], b, min(bytes - i, sizeof(b)));
+    }
+
+    if (srsp) {
+        rc = ble_gap_adv_rsp_set_data(buf, bytes);
+    } else {
+        rc = ble_gap_adv_set_data(buf, bytes);
+    }
+
+    return rc;
+}
+
 /**
  * main
  *
