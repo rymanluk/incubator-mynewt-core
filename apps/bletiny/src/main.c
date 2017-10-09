@@ -38,6 +38,7 @@
 #include "nimble/nimble_opt.h"
 #include "nimble/ble_hci_trans.h"
 #include "host/ble_hs.h"
+#include "host/ble_hs_mbuf.h"
 #include "host/ble_hs_adv.h"
 #include "host/ble_uuid.h"
 #include "host/ble_att.h"
@@ -56,6 +57,7 @@
 #include "../src/ble_hs_conn_priv.h"
 #include "../src/ble_hs_atomic_priv.h"
 #include "../src/ble_hs_hci_priv.h"
+#include "../src/ble_hs_priv.h"
 
 #if MYNEWT_VAL(BLE_ROLE_CENTRAL)
 #define BLETINY_MAX_SVCS               32
@@ -1993,6 +1995,64 @@ bletiny_l2cap_send(uint16_t conn_handle, uint16_t idx, uint16_t bytes)
     return rc;
 
 #endif
+}
+
+int
+bletiny_raw_send(uint16_t conn_handle, uint16_t bytes)
+{
+    struct ble_hs_conn *conn;
+    struct os_mbuf *txom;
+    static uint8_t b[] = {0x00, 0x11,0x22,0x33,0x44,0x55,0x66,0x77,0x88, 0x99};
+    int i;
+    int rc;
+
+    ble_hs_lock();
+    ble_hs_misc_conn_chan_find(conn_handle, BLE_L2CAP_CID_SIG,
+                               &conn, NULL);
+    ble_hs_unlock();
+    if (conn == NULL) {
+        console_printf("conn=%d does not exist\n", conn_handle);
+        return 0;
+    }
+
+    txom = ble_hs_mbuf_acl_pkt();
+    if (txom == NULL) {
+        console_printf("No memory in the test sdu pool\n");
+        return 0;
+    }
+
+    /* For the testing purpose we fill up buffer with known data, easy
+     * to validate on other side. In this loop we add as many full chunks as we
+     * can
+     */
+    for (i = 0; i < bytes / sizeof(b); i++) {
+        rc = os_mbuf_append(txom, b, sizeof(b));
+        if (rc) {
+            console_printf("Cannot append data %i !\n", i);
+            os_mbuf_free_chain(txom);
+            return rc;
+        }
+    }
+
+    /* Here we add the rest < sizeof(b) */
+    rc = os_mbuf_append(txom, b, bytes - (sizeof(b) * i));
+    if (rc) {
+        console_printf("Cannot append data %i !\n", i);
+        os_mbuf_free_chain(txom);
+        return rc;
+    }
+
+    rc = ble_hs_hci_acl_tx(conn, txom);
+    if (rc) {
+        console_printf("Could not send data rc=%d\n", rc);
+        if (rc == BLE_HS_EBUSY) {
+            os_mbuf_free_chain(txom);
+        }
+    }
+
+    console_printf("TX: conn_handle=%u len=%u\n", conn_handle, bytes);
+
+    return rc;
 }
 /**
  * main
