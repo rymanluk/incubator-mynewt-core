@@ -228,8 +228,8 @@ ble_ll_ctrl_len_proc(struct ble_ll_conn_sm *connsm, uint8_t *dptr)
 
     if (!ble_ll_ctrl_chk_supp_bytes(ctrl_req.max_rx_bytes) ||
         !ble_ll_ctrl_chk_supp_bytes(ctrl_req.max_tx_bytes) ||
-        !ble_ll_ctrl_chk_supp_time(ctrl_req.max_tx_time) ||
-        !ble_ll_ctrl_chk_supp_time(ctrl_req.max_rx_time)) {
+        !ble_ll_ctrl_chk_supp_time(ctrl_req.max_tx_time) //||
+        /*!ble_ll_ctrl_chk_supp_time(ctrl_req.max_rx_time)*/) {
         rc = 1;
     } else {
         /* Update the connection with the new parameters */
