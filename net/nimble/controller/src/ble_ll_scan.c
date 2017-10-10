@@ -2454,12 +2454,6 @@ ble_ll_scan_rx_pkt_in(uint8_t ptype, struct os_mbuf *om, struct ble_mbuf_hdr *hd
             ble_ll_scan_req_backoff(scansm, 1);
         }
 
-        if (BLE_LL_CHECK_AUX_FLAG(aux_data, BLE_LL_AUX_CHAIN_BIT)) {
-            // If there is chaining, we don't want to free aux data
-            hdr->rxinfo.user_data = NULL;
-            // TODO schedule
-        }
-
         goto scan_continue;
     }
 #endif
