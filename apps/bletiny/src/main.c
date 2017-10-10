@@ -896,9 +896,10 @@ static void
 bletiny_decode_adv_data(uint8_t *adv_data, uint8_t adv_data_len)
 {
     struct ble_hs_adv_fields fields;
+    uint8_t len_print = min(adv_data_len, 16);
 
     console_printf(" length_data=%d data=", adv_data_len);
-    print_bytes(adv_data, adv_data_len);
+    print_bytes(adv_data, len_print);
     console_printf(" fields:\n");
     ble_hs_adv_parse_fields(&fields, adv_data, adv_data_len);
     bletiny_print_adv_fields(&fields);
