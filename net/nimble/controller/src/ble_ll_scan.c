@@ -1806,7 +1806,9 @@ ble_ll_scan_parse_ext_adv(struct os_mbuf *om, struct ble_mbuf_hdr *ble_hdr,
         if ((sizeof(*out_evt) + out_evt->adv_data_len) + 1 >
                                         MYNEWT_VAL(BLE_HCI_EVT_BUF_SIZE)) {
             STATS_INC(ble_ll_stats, adv_evt_dropped);
-            return -1;
+            //return -1;
+            out_evt->adv_data_len = MYNEWT_VAL(BLE_HCI_EVT_BUF_SIZE)
+                                    - sizeof(*out_evt) - 5;
         }
 
         os_mbuf_copydata(om, 0, out_evt->adv_data_len, out_evt->adv_data);
