@@ -405,7 +405,7 @@ ble_ll_chk_txrx_time(uint16_t time)
     int rc;
 
     if ((time < BLE_LL_CONN_SUPP_TIME_MIN) ||
-        (time > BLE_LL_CONN_SUPP_TIME_MAX)) {
+        (time > BLE_LL_CONN_SUPP_TIME_MAX_CODED)) {
         rc = 0;
     } else {
         rc = 1;
