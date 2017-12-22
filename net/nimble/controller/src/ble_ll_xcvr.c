@@ -134,6 +134,11 @@ ble_ll_xcvr_rfclk_timer_start(uint32_t cputime)
         return;
     }
 
+#if MYNEWT_VAL(BLE_LL_CERT_MODE_ON) == 1
+    if (g_ble_ll_data.ll_state == BLE_LL_STATE_TEST_MODE) {
+        return;
+    }
+#endif
     /* Account for the settling time */
     cputime -= g_ble_ll_data.ll_xtal_ticks;
 

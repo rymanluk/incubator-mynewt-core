@@ -34,6 +34,10 @@
 #include "controller/ble_ll_resolv.h"
 #include "ble_ll_conn_priv.h"
 
+#if MYNEWT_VAL(BLE_LL_CERT_MODE_ON) == 1
+#include "ble_ll_test_priv.h"
+#endif
+
 static void ble_ll_hci_cmd_proc(struct os_event *ev);
 
 /* OS event to enqueue command */
@@ -851,6 +855,23 @@ ble_ll_hci_le_cmd_proc(uint8_t *cmdbuf, uint16_t ocf, uint8_t *rsplen)
         break;
     case BLE_HCI_OCF_LE_SET_PHY:
         rc = ble_ll_conn_hci_le_set_phy(cmdbuf);
+        break;
+#endif
+#if (MYNEWT_VAL(BLE_LL_CERT_MODE_ON) == 1)
+    case BLE_HCI_OCF_LE_TX_TEST:
+        rc = ble_ll_test_tx_test(cmdbuf);
+        break;
+    case BLE_HCI_OCF_LE_RX_TEST:
+        rc = ble_ll_test_rx_test(cmdbuf);
+        break;
+    case BLE_HCI_OCF_LE_TEST_END:
+        rc = ble_ll_test_end_test(cmdbuf, rspbuf, rsplen);
+        break;
+    case BLE_HCI_OCF_LE_ENH_RX_TEST:
+        rc = ble_ll_test_enh_rx_test(cmdbuf);
+        break;
+    case BLE_HCI_OCF_LE_ENH_TX_TEST:
+        rc = ble_ll_test_enh_tx_test(cmdbuf);
         break;
 #endif
     default:
