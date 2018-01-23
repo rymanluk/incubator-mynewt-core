@@ -2982,6 +2982,24 @@ static const struct shell_cmd_help phy_read_help = {
     .params = phy_read_params,
 };
 
+static const struct shell_cmd_help hci_reg_test_rx_help = {
+    .summary = "register for raw HCI data",
+    .usage = NULL,
+    .params = NULL
+};
+
+static const struct shell_param hci_test_tx[] = {
+    {"conn", "connection handle, usage: =<UINT16>"},
+    {"bytes", "number of bytes to be sent, usage: =<UINT16>"},
+    {NULL, NULL}
+};
+
+static const struct shell_cmd_help hci_test_tx_help = {
+    .summary = "send raw HCI data",
+    .usage = NULL,
+    .params = hci_test_tx,
+};
+
 /*****************************************************************************
  * $gatt-discover                                                            *
  *****************************************************************************/
@@ -3665,6 +3683,20 @@ static const struct shell_cmd btshell_commands[] = {
         .help = &phy_read_help,
 #endif
     },
+    {
+        .sc_cmd = "hci-reg-test-rx",
+        .sc_cmd_func = cmd_hci_reg_test_rx,
+#if MYNEWT_VAL(SHELL_CMD_HELP)
+        .help = &hci_reg_test_rx_help,
+#endif
+    },
+    {
+        .sc_cmd = "hci-test-tx",
+        .sc_cmd_func = cmd_hci_test_tx,
+#if MYNEWT_VAL(SHELL_CMD_HELP)
+        .help = &hci_test_tx_help,
+#endif
+        },
     { NULL, NULL, NULL },
 };
 

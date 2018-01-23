@@ -189,6 +189,9 @@ int chr_is_empty(const struct btshell_svc *svc, const struct btshell_chr *chr);
 void print_conn_desc(const struct ble_gap_conn_desc *desc);
 void print_svc(struct btshell_svc *svc);
 
+void btshell_hci_reg_test_rx(void);
+int btshell_hci_test_tx(uint16_t conn_handle, uint16_t bytes);
+
 #ifdef __cplusplus
 }
 #endif

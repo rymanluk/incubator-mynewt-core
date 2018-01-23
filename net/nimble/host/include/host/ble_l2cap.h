@@ -189,6 +189,11 @@ int ble_l2cap_disconnect(struct ble_l2cap_chan *chan);
 int ble_l2cap_send(struct ble_l2cap_chan *chan, struct os_mbuf *sdu_tx);
 void ble_l2cap_recv_ready(struct ble_l2cap_chan *chan, struct os_mbuf *sdu_rx);
 
+#if MYNEWT_VAL(BLE_TESTING_SESSION)
+#define BLE_TEST_CID    (0xff01)
+#define BLE_TEST_MTU    (0xffff)
+#endif
+
 #ifdef __cplusplus
 }
 #endif

@@ -23,6 +23,9 @@
 #include "os/os.h"
 #include "host/ble_hs_id.h"
 #include "ble_hs_priv.h"
+#if MYNEWT_VAL(BLE_TESTING_SESSION)
+#include "ble_hs_hci_priv.h"
+#endif
 
 /** At least three channels required per connection (sig, att, sm). */
 #define BLE_HS_CONN_MIN_CHANS       3
@@ -122,6 +125,70 @@ ble_hs_conn_chan_insert(struct ble_hs_conn *conn, struct ble_l2cap_chan *chan)
     return 0;
 }
 
+#if MYNEWT_VAL(BLE_TESTING_SESSION)
+static ble_hs_testing_cb test_cb = NULL;
+
+int
+ble_hs_register_testing(ble_hs_testing_cb cb)
+{
+    test_cb = cb;
+    return 0;
+}
+
+int
+ble_hs_send(uint16_t conn_handle, struct os_mbuf *mbuf)
+{
+    int rc;
+    struct ble_hs_conn *conn;
+
+    ble_hs_lock();
+    conn = ble_hs_conn_find(conn_handle);
+    if (!conn) {
+        return BLE_HS_ENOENT;
+    }
+
+    rc = ble_hs_hci_acl_tx(conn, &mbuf);
+    ble_hs_unlock();
+    return rc;
+}
+
+static int
+ble_hs_testing_session_rx(struct ble_l2cap_chan *chan)
+{
+    if (test_cb) {
+        test_cb(chan->conn_handle, chan->rx_buf);
+        return 0;
+    }
+
+    return 1;
+}
+
+int
+ble_hs_conn_reg_test_chan(struct ble_hs_conn *conn)
+{
+    struct ble_l2cap_chan *chan;
+    int rc;
+
+    chan = ble_l2cap_chan_alloc(conn->bhc_handle);
+    if (chan == NULL) {
+        return 1;
+    }
+
+    chan->scid = BLE_TEST_CID;
+    chan->dcid = BLE_TEST_CID;
+    chan->my_mtu = BLE_TEST_MTU;
+    chan->rx_fn = ble_hs_testing_session_rx;
+
+    rc = ble_hs_conn_chan_insert(conn, chan);
+    if (rc != 0) {
+        return rc;
+    }
+
+    return 0;
+}
+
+#endif
+
 struct ble_hs_conn *
 ble_hs_conn_alloc(uint16_t conn_handle)
 {
@@ -172,6 +239,13 @@ ble_hs_conn_alloc(uint16_t conn_handle)
         goto err;
     }
 
+#if MYNEWT_VAL(BLE_TESTING_SESSION)
+    rc = ble_hs_conn_reg_test_chan(conn);
+     if (rc != 0) {
+        goto err;
+    }
+
+#endif
     rc = ble_gatts_conn_init(&conn->bhc_gatt_svr);
     if (rc != 0) {
         goto err;

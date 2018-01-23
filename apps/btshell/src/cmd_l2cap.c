@@ -26,7 +26,7 @@
 #include "btshell.h"
 #include "cmd.h"
 #include "cmd_l2cap.h"
-
+#include "syscfg/syscfg.h"
 
 /*****************************************************************************
  * $l2cap-update                                                             *
@@ -237,5 +237,40 @@ cmd_l2cap_show_coc(int argc, char **argv)
         }
     }
 
+    return 0;
+}
+
+int
+cmd_hci_reg_test_rx(int argc, char **argv)
+{
+    btshell_hci_reg_test_rx();
+    return 0;
+}
+
+int
+cmd_hci_test_tx(int argc, char **argv)
+{
+    uint16_t conn_handle;
+    uint16_t bytes;
+    int rc;
+
+    rc = parse_arg_all(argc - 1, argv + 1);
+    if (rc != 0) {
+        return rc;
+    }
+
+    conn_handle = parse_arg_uint16("conn", &rc);
+    if (rc != 0) {
+       console_printf("invalid 'conn' parameter\n");
+       return rc;
+    }
+
+    bytes = parse_arg_uint16("bytes", &rc);
+    if (rc != 0) {
+       console_printf("invalid 'bytes' parameter\n");
+       return rc;
+    }
+
+    btshell_hci_test_tx(conn_handle, bytes);
     return 0;
 }

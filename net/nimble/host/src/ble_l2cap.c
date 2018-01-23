@@ -317,13 +317,23 @@ ble_l2cap_rx(struct ble_hs_conn *conn,
             goto err;
         }
 
-        /* Strip L2CAP header from the front of the mbuf. */
-        os_mbuf_adj(om, BLE_L2CAP_HDR_SZ);
-
         chan = ble_hs_conn_chan_find_by_scid(conn, l2cap_hdr.cid);
         if (chan == NULL) {
             rc = BLE_HS_ENOENT;
 
+#if MYNEWT_VAL(BLE_TESTING_SESSION)
+            chan = ble_hs_conn_chan_find_by_scid(conn, BLE_TEST_CID);
+            if (!chan) {
+                goto err;
+            }
+
+            conn->bhc_rx_chan = chan;
+            l2cap_hdr.len = OS_MBUF_PKTLEN(om);
+            chan->rx_len = l2cap_hdr.len;
+            l2cap_hdr.cid = BLE_TEST_CID;
+            rc = 0;
+            goto done;
+#else
             /* Unsupported channel. If the target CID is the black hole
              * channel, quietly drop the packet.  Otherwise, send an invalid
              * CID response.
@@ -334,7 +344,11 @@ ble_l2cap_rx(struct ble_hs_conn *conn,
                 *out_reject_cid = l2cap_hdr.cid;
             }
             goto err;
+#endif
         }
+
+        /* Strip L2CAP header from the front of the mbuf. */
+        os_mbuf_adj(om, BLE_L2CAP_HDR_SZ);
 
         if (chan->rx_buf != NULL) {
             /* Previous data packet never completed.  Discard old packet. */
@@ -357,7 +371,22 @@ ble_l2cap_rx(struct ble_hs_conn *conn,
         if (chan == NULL || chan->rx_buf == NULL) {
             /* Middle fragment without the start.  Discard new packet. */
             rc = BLE_HS_EBADDATA;
+
+#if MYNEWT_VAL(BLE_TESTING_SESSION)
+            chan = ble_hs_conn_chan_find_by_scid(conn, BLE_TEST_CID);
+            if (!chan) {
+                goto err;
+            }
+
+            conn->bhc_rx_chan = chan;
+            l2cap_hdr.len = OS_MBUF_PKTLEN(om);
+            chan->rx_len = l2cap_hdr.len;
+            l2cap_hdr.cid = BLE_TEST_CID;
+            rc = 0;
+            goto done;
+#else
             goto err;
+#endif
         }
         break;
 
@@ -365,7 +394,9 @@ ble_l2cap_rx(struct ble_hs_conn *conn,
         rc = BLE_HS_EBADDATA;
         goto err;
     }
-
+#if MYNEWT_VAL(BLE_TESTING_SESSION)
+done:
+#endif
     rc = ble_l2cap_rx_payload(conn, chan, om, out_rx_cb);
     om = NULL;
     if (rc != 0) {

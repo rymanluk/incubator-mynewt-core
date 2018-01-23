@@ -2000,6 +2000,71 @@ btshell_l2cap_send(uint16_t conn_handle, uint16_t idx, uint16_t bytes)
 
 #endif
 }
+
+#if MYNEWT_VAL(BLE_TESTING_SESSION)
+static void
+btshell_hci_rx_cb(uint16_t conn_handle, struct os_mbuf *om)
+{
+    console_printf("Received %d octets on conn 0x%04x\n", OS_MBUF_PKTLEN(om),
+                   conn_handle);
+}
+#endif
+
+void btshell_hci_reg_test_rx(void)
+{
+#if MYNEWT_VAL(BLE_TESTING_SESSION) == 0
+    console_printf("BLE TESTING SESSION not supported.");
+    console_printf(" Configure nimble host to enable it\n");
+    return;
+#else
+    ble_hs_register_testing(btshell_hci_rx_cb);
+#endif
+}
+
+int
+btshell_hci_test_tx(uint16_t conn_handle, uint16_t bytes)
+{
+#if MYNEWT_VAL(BLE_TESTING_SESSION) == 0
+    console_printf("BLE TESTING SESSION not supported.");
+    console_printf(" Configure nimble host to enable it\n");
+    return 1;
+#else
+    int rc;
+    int i;
+    struct os_mbuf *sdu_tx;
+    uint8_t b[] = {0x00, 0x11,0x22,0x33,0x44,0x55,0x66,0x77,0x88, 0x99};
+
+    sdu_tx = os_mbuf_get_pkthdr(&sdu_os_mbuf_pool, 0);
+    if (sdu_tx == NULL) {
+        console_printf("No memory in the test sdu pool\n");
+        return 0;
+    }
+
+    /* For the testing purpose we fill up buffer with known data, easy
+     * to validate on other side. In this loop we add as many full chunks as we
+     * can
+     */
+    for (i = 0; i < bytes / sizeof(b); i++) {
+        rc = os_mbuf_append(sdu_tx, b, sizeof(b));
+        if (rc) {
+            console_printf("Cannot append data %i !\n", i);
+            os_mbuf_free_chain(sdu_tx);
+            return rc;
+        }
+    }
+
+    /* Here we add the rest < sizeof(b) */
+    rc = os_mbuf_append(sdu_tx, b, bytes - (sizeof(b) * i));
+    if (rc) {
+        console_printf("Cannot append data %i !\n", i);
+        os_mbuf_free_chain(sdu_tx);
+        return rc;
+    }
+
+    rc = ble_hs_send(conn_handle, sdu_tx);
+    return rc;
+#endif
+}
 /**
  * main
  *

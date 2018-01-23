@@ -28,5 +28,7 @@ int cmd_l2cap_connect(int argc, char **argv);
 int cmd_l2cap_disconnect(int argc, char **argv);
 int cmd_l2cap_send(int argc, char **argv);
 int cmd_l2cap_show_coc(int argc, char **argv);
+int cmd_hci_test_tx(int argc, char **argv);
+int cmd_hci_reg_test_rx(int argc, char **argv);
 
 #endif

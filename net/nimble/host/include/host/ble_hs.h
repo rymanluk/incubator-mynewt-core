@@ -177,6 +177,12 @@ void ble_hs_sched_reset(int reason);
 void ble_hs_evq_set(struct os_eventq *evq);
 void ble_hs_init(void);
 
+#if MYNEWT_VAL(BLE_TESTING_SESSION)
+typedef void (* ble_hs_testing_cb)(uint16_t conn_handle, struct os_mbuf *mbuf);
+int ble_hs_register_testing(ble_hs_testing_cb cb);
+int ble_hs_send(uint16_t conn_handle, struct os_mbuf *mbuf);
+#endif
+
 #ifdef __cplusplus
 }
 #endif
