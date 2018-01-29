@@ -1415,7 +1415,7 @@ static const struct shell_cmd_help set_help = {
 #define CMD_ADV_DATA_SVC_DATA_UUID32_MAX_LEN    BLE_HS_ADV_MAX_FIELD_SZ
 #define CMD_ADV_DATA_SVC_DATA_UUID128_MAX_LEN   BLE_HS_ADV_MAX_FIELD_SZ
 #define CMD_ADV_DATA_URI_MAX_LEN                BLE_HS_ADV_MAX_FIELD_SZ
-#define CMD_ADV_DATA_MFG_DATA_MAX_LEN           BLE_HS_ADV_MAX_FIELD_SZ
+#define CMD_ADV_DATA_MFG_DATA_MAX_LEN           512
 
 static int
 cmd_set_adv_data_or_scan_rsp(int argc, char **argv, bool scan_rsp)

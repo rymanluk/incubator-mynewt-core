@@ -561,7 +561,7 @@ ble_hs_adv_parse_one_field(struct ble_hs_adv_fields *adv_fields,
     data = src + 2;
     data_len = *total_len - 2;
 
-    if (data_len > BLE_HS_ADV_MAX_FIELD_SZ) {
+    if (data_len > BLE_HS_ADV_MAX_FIELD_SZ && type != BLE_HS_ADV_TYPE_MFG_DATA) {
         return BLE_HS_EBADDATA;
     }
 
