@@ -1420,6 +1420,10 @@ static const struct shell_cmd_help set_help = {
 static int
 cmd_set_adv_data_or_scan_rsp(int argc, char **argv, bool scan_rsp)
 {
+#if MYNEWT_VAL(BLE_EXT_ADV)
+    static const char random_pattern[] = { '1', '2', '3', '4', '5',
+                                           '6', '7', '8', '9', '0' };
+#endif
     static bssnz_t ble_uuid16_t uuids16[CMD_ADV_DATA_MAX_UUIDS16];
     static bssnz_t ble_uuid32_t uuids32[CMD_ADV_DATA_MAX_UUIDS32];
     static bssnz_t ble_uuid128_t uuids128[CMD_ADV_DATA_MAX_UUIDS128];
@@ -1454,6 +1458,7 @@ cmd_set_adv_data_or_scan_rsp(int argc, char **argv, bool scan_rsp)
     int rc;
 #if MYNEWT_VAL(BLE_EXT_ADV)
     uint8_t instance;
+    uint16_t random_data_len;
     struct os_mbuf *adv_data;
 #endif
 
@@ -1708,6 +1713,16 @@ cmd_set_adv_data_or_scan_rsp(int argc, char **argv, bool scan_rsp)
             goto done;
         }
 
+        /* Append "random" data */
+        random_data_len = parse_arg_uint16("random_data", &rc);
+        if (rc == 0) {
+            while (random_data_len) {
+                tmp = min(random_data_len, sizeof(random_pattern));
+                os_mbuf_append(adv_data, random_pattern, tmp);
+                random_data_len -= tmp;
+            }
+        }
+
         if (scan_rsp) {
             rc = ble_gap_ext_adv_rsp_set_data(instance, adv_data);
         } else {
@@ -1763,6 +1778,9 @@ static const struct shell_param set_adv_data_params[] = {
     {"uri", "usage: =[XX:XX...]"},
     {"mfg_data", "usage: =[XX:XX...]"},
     {"eddystone_url", "usage: =[string]"},
+#if MYNEWT_VAL(BLE_EXT_ADV)
+    {"random_data", "usage: =[UINT16]"},
+#endif
     {NULL, NULL}
 };
 
