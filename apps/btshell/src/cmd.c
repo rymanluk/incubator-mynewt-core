@@ -1866,7 +1866,7 @@ cmd_white_list(int argc, char **argv)
 
         addrs[addrs_cnt].type = parse_arg_kv("addr_type", cmd_addr_type, &rc);
         if (rc != 0) {
-            console_printf("invalid 'addr' parameter\n");
+            console_printf("invalid 'addr type' parameter\n");
             return rc;
         }
 
