@@ -1779,6 +1779,7 @@ static const struct shell_param set_adv_data_params[] = {
     {"mfg_data", "usage: =[XX:XX...]"},
     {"eddystone_url", "usage: =[string]"},
 #if MYNEWT_VAL(BLE_EXT_ADV)
+    {"instance", "usage: = [0-UINT8_MAX], default=0"},
     {"random_data", "usage: =[UINT16]"},
 #endif
     {NULL, NULL}
