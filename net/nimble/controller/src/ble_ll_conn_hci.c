@@ -1512,6 +1512,16 @@ ble_ll_conn_hci_le_set_phy(uint8_t *cmdbuf)
         return BLE_ERR_CMD_DISALLOWED;
     }
 
+    /*
+     * If we are a slave and the master has initiated the channel map
+     * update procedure we should deny the slave request for now.
+     */
+    if (connsm->csmflags.cfbit.chanmap_update_scheduled) {
+        if (connsm->conn_role == BLE_LL_CONN_ROLE_SLAVE) {
+            return BLE_ERR_DIFF_TRANS_COLL;
+        }
+    }
+
     phy_options = get_le16(cmdbuf + 5);
     if (phy_options > BLE_HCI_LE_PHY_CODED_S8_PREF) {
         return BLE_ERR_INV_HCI_CMD_PARMS;
