@@ -2637,14 +2637,13 @@ ble_ll_set_ext_scan_params(uint8_t *cmd)
     }
 #endif
 
-    /* For now we don't accept request for continuous scan if 2 PHYs are
-     * requested.
-     */
     if ((cmd[2] ==
             (BLE_HCI_LE_PHY_1M_PREF_MASK | BLE_HCI_LE_PHY_CODED_PREF_MASK)) &&
                 ((uncoded->scan_itvl == uncoded->scan_window) ||
                 (coded->scan_itvl == coded-> scan_window))) {
-            return BLE_ERR_INV_HCI_CMD_PARMS;
+
+                uncoded->scan_itvl = uncoded->scan_itvl * 2;
+                coded-> scan_itvl = coded-> scan_itvl * 3;
     }
 
     memcpy(g_ble_ll_scan_params, new_params, sizeof(new_params));
