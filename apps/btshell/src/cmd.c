@@ -3019,6 +3019,11 @@ static const struct shell_cmd_help hci_test_tx_help = {
     .params = hci_test_tx,
 };
 
+static const struct shell_cmd_help hci_chan_map_help = {
+    .summary = "Setting new channel map usage: =[XX:XX...], len=5 octets",
+    .usage = NULL,
+    .params = NULL,
+};
 /*****************************************************************************
  * $gatt-discover                                                            *
  *****************************************************************************/
@@ -3716,9 +3721,15 @@ static const struct shell_cmd btshell_commands[] = {
         .help = &hci_test_tx_help,
 #endif
         },
-    { NULL, NULL, NULL },
+    {
+            .sc_cmd = "chan-map",
+            .sc_cmd_func = cmd_chan_map,
+    #if MYNEWT_VAL(SHELL_CMD_HELP)
+            .help = &hci_chan_map_help,
+    #endif
+            },
+        { NULL, NULL, NULL },
 };
-
 
 void
 cmd_init(void)

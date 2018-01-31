@@ -248,6 +248,32 @@ cmd_hci_reg_test_rx(int argc, char **argv)
 }
 
 int
+cmd_chan_map(int argc, char **argv)
+{
+    uint8_t map[5];
+    int rc;
+
+    rc = parse_arg_all(argc - 1, argv + 1);
+    if (rc != 0) {
+        return rc;
+    }
+
+    rc = parse_arg_byte_stream_exact_length("map", map, 5);
+    if (rc) {
+        console_printf("invalid 'map' parameter\n");
+        return rc;
+    }
+
+    rc = ble_hs_hci_set_chan_class(map);
+    if (rc) {
+        console_printf("Could not set new chan map err=0x%02x\n", rc);
+        return rc;
+    }
+
+    return 0;
+}
+
+int
 cmd_hci_test_tx(int argc, char **argv)
 {
     uint16_t conn_handle;

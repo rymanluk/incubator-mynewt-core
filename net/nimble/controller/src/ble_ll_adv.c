@@ -478,7 +478,7 @@ ble_ll_adv_aux_pdu_make(uint8_t *dptr, void *pducb_arg, uint8_t *hdr_byte)
     advsm = pducb_arg;
     aux = AUX_CURRENT(advsm);
 
-    assert(advsm->adv_data);
+    //assert(advsm->adv_data);
     assert(!(advsm->props & BLE_HCI_LE_SET_EXT_ADV_PROP_LEGACY));
     assert(ble_ll_adv_active_chanset_is_sec(advsm));
 
@@ -1016,7 +1016,9 @@ ble_ll_adv_aux_calculate(struct ble_ll_adv_sm *advsm,
     static bool chainable;
 
     assert(!aux->sch.enqueued);
-    assert(ADV_DATA_LEN(advsm) > data_off);
+    assert((ADV_DATA_LEN(advsm) > data_off) ||
+                    (ADV_DATA_LEN(advsm) == 0 && data_off == 0));
+    //assert(ADV_DATA_LEN(advsm) >= data_off);
 
     aux->data_offset = data_off;
     aux->adv_data_len = 0;

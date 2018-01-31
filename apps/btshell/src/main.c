@@ -998,6 +998,14 @@ btshell_gap_event(struct ble_gap_event *event, void *arg)
         if (conn_idx != -1) {
             btshell_conn_delete_idx(conn_idx);
         }
+
+        //JUST FOR ROBUSTNESS
+  /*      rc = ble_gap_ext_adv_start(0, 0, 0);
+        if (rc) {
+            console_printf("failed to start advertising instance\n");
+            return rc;
+        }*/
+
         return 0;
 #if MYNEWT_VAL(BLE_EXT_ADV)
     case BLE_GAP_EVENT_EXT_DISC:
