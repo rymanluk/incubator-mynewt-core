@@ -1444,6 +1444,11 @@ ble_ll_ctrl_rx_reject_ind(struct ble_ll_conn_sm *connsm, uint8_t *dptr,
         ble_ll_ctrl_proc_stop(connsm, BLE_LL_CTRL_PROC_PHY_UPDATE);
         break;
 #endif
+    case BLE_LL_CTRL_PROC_DATA_LEN_UPD:
+        if (IS_PENDING_CTRL_PROC(connsm, BLE_LL_CTRL_PROC_DATA_LEN_UPD)) {
+        CLR_PENDING_CTRL_PROC(connsm, BLE_LL_CTRL_PROC_DATA_LEN_UPD);
+        }
+    break;
     default:
         break;
     }
