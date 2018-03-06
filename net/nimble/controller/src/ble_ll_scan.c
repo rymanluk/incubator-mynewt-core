@@ -40,6 +40,12 @@
 #include "controller/ble_ll_xcvr.h"
 #include "ble_ll_conn_priv.h"
 
+#include "hal/hal_gpio.h"
+
+#define UNCODED_PIN     44
+#define CODED_PIN       45
+#define SCAN_WINDOW     46
+#define SCAN_CHAN       36
 /*
  * XXX:
  * 1) I think I can guarantee that we dont process things out of order if
@@ -935,6 +941,19 @@ ble_ll_get_chan_to_scan(struct ble_ll_scan_sm *scansm, uint8_t *chan,
     *phy = scanphy->phy;
 #endif
 }
+
+
+static void
+pin_chan(int chan) {
+    int i;
+
+    chan = chan % 36;
+
+    for (i = 0; i < chan; i++) {
+        hal_gpio_write(SCAN_CHAN, 1);
+        hal_gpio_write(SCAN_CHAN, 0);
+    }
+}
 /**
  * Called to enable the receiver for scanning.
  *
@@ -955,6 +974,12 @@ ble_ll_scan_start(struct ble_ll_scan_sm *scansm, struct ble_ll_sched_item *sch)
 #endif
     int phy;
 
+    if (scansm->cur_phy == PHY_UNCODED) {
+        hal_gpio_write(UNCODED_PIN, 1);
+    } else {
+        hal_gpio_write(CODED_PIN, 1);
+    }
+
     ble_ll_get_chan_to_scan(scansm, &scan_chan, &phy);
 
     /* XXX: right now scheduled item is only present if we schedule for aux
@@ -963,7 +988,9 @@ ble_ll_scan_start(struct ble_ll_scan_sm *scansm, struct ble_ll_sched_item *sch)
      */
     assert(!sch || scan_chan < BLE_PHY_ADV_CHAN_START);
     assert(sch || scan_chan >= BLE_PHY_ADV_CHAN_START);
-    
+
+    pin_chan(scan_chan);
+
     /* Set channel */
     rc = ble_phy_setchan(scan_chan, BLE_ACCESS_ADDR_ADV, BLE_LL_CRCINIT_ADV);
     assert(rc == 0);
@@ -1133,6 +1160,10 @@ ble_ll_scan_sm_stop(int chk_disable)
     uint8_t lls;
     struct ble_ll_scan_sm *scansm;
 
+    hal_gpio_write(UNCODED_PIN, 0);
+    hal_gpio_write(CODED_PIN, 0);
+    hal_gpio_write(SCAN_WINDOW, 0);
+
     /* Stop the scanning timer  */
     scansm = &g_ble_ll_scan_sm;
     os_cputime_timer_stop(&scansm->scan_timer);
@@ -1280,6 +1311,7 @@ ble_ll_scan_start_next_phy(struct ble_ll_scan_sm *scansm,
                                     BLE_HCI_SCAN_ITVL);
 
     next_phy->next_event_start = now + win;
+            hal_gpio_write(SCAN_WINDOW, 1);
 
     *next_event_time = next_phy->next_event_start;
     return true;
@@ -1319,6 +1351,9 @@ ble_ll_scan_event_proc(struct os_event *ev)
     struct ble_ll_scan_sm *scansm;
     struct ble_ll_scan_params *scanphy;
 
+    hal_gpio_write(UNCODED_PIN, 0);
+    hal_gpio_write(CODED_PIN, 0);
+
     /*
      * Get the scanning state machine. If not enabled (this is possible), just
      * leave and do nothing (just make sure timer is stopped).
@@ -1330,6 +1365,7 @@ ble_ll_scan_event_proc(struct os_event *ev)
     if (!scansm->scan_enabled) {
         os_cputime_timer_stop(&scansm->scan_timer);
         OS_EXIT_CRITICAL(sr);
+        hal_gpio_write(SCAN_WINDOW, 0);
         return;
     }
 
@@ -1411,6 +1447,7 @@ ble_ll_scan_event_proc(struct os_event *ev)
         break;
     }
 
+        hal_gpio_write(SCAN_WINDOW, 0);
     if (start_scan && inside_window) {
 #ifdef BLE_XCVR_RFCLK
             xtal_state = ble_ll_xcvr_rfclk_state();
@@ -1442,8 +1479,10 @@ ble_ll_scan_event_proc(struct os_event *ev)
             goto done;
         }
 #endif
+        hal_gpio_write(SCAN_WINDOW, 1);
         ble_ll_scan_start(scansm, NULL);
         goto done;
+      hal_gpio_write(SCAN_WINDOW, 0);
     }
 
 #ifdef BLE_XCVR_RFCLK
@@ -1501,6 +1540,9 @@ ble_ll_scan_rx_isr_start(uint8_t pdu_type, uint16_t *rxflags)
     rc = 0;
     scansm = &g_ble_ll_scan_sm;
     scanphy = &scansm->phy_data[scansm->cur_phy];
+
+    hal_gpio_write(UNCODED_PIN, 0);
+    hal_gpio_write(CODED_PIN, 0);
 
     switch (scanphy->scan_type) {
     case BLE_SCAN_TYPE_ACTIVE:
@@ -2252,6 +2294,14 @@ ble_ll_scan_wfr_timer_exp(void)
      * If we timed out waiting for a response, the scan response pending
      * flag should be set. Deal with scan backoff. Put device back into rx.
      */
+
+    hal_gpio_write(UNCODED_PIN, 0);
+    hal_gpio_write(UNCODED_PIN, 1);
+    hal_gpio_write(UNCODED_PIN, 0);
+    hal_gpio_write(CODED_PIN, 0);
+    hal_gpio_write(CODED_PIN, 1);
+    hal_gpio_write(CODED_PIN, 0);
+
     scansm = &g_ble_ll_scan_sm;
     if (scansm->scan_rsp_pending) {
         ble_ll_scan_req_backoff(scansm, 0);
@@ -3113,4 +3163,9 @@ ble_ll_scan_init(void)
                           "ble_ll_aux_scan_pool");
     assert(err == 0);
 #endif
+
+    hal_gpio_init_out(UNCODED_PIN, 0);
+    hal_gpio_init_out(CODED_PIN, 0);
+    hal_gpio_init_out(SCAN_WINDOW, 0);
+    hal_gpio_init_out(SCAN_CHAN, 0);
 }
