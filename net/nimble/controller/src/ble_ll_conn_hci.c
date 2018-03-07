@@ -679,6 +679,9 @@ ble_ll_ext_conn_create(uint8_t *cmdbuf)
         }
 
         iter += 4;
+        if (valid_param_idx < 0) {
+            valid_param_idx = 1;
+        }
     }
 #endif
 
