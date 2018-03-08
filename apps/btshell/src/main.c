@@ -2086,6 +2086,9 @@ main(int argc, char **argv)
     os_callout_init(&btshell_tx_timer, os_eventq_dflt_get(),
                     btshell_tx_timer_cb, NULL);
 
+    printf("Welcome dupa %f", (double)3.1415);
+    console_printf("Welcome dupa 2 %f", (double)3.1415);
+
     while (1) {
         os_eventq_run(os_eventq_dflt_get());
     }

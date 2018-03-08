@@ -44,6 +44,8 @@
 #include "cmd_gatt.h"
 #include "cmd_l2cap.h"
 
+#include <stdio.h>
+
 #define BTSHELL_MODULE "btshell"
 
 #if MYNEWT_VAL(BLE_EXT_ADV)
@@ -3017,6 +3019,22 @@ static const struct shell_cmd_help phy_read_help = {
     .params = phy_read_params,
 };
 
+
+static int
+cmd_print(int argc, char **argv)
+{
+    double rc;
+
+    rc = strtod(argv[1], NULL);
+
+    console_printf("Our number is %f\n", (double) 14.39);
+    printf("Our number is %f\n", (double) 14.39);
+
+    console_printf("Our number is %f\n", rc);
+    printf("Our number is %f\n", rc);
+
+    return 0;
+}
 /*****************************************************************************
  * $gatt-discover                                                            *
  *****************************************************************************/
@@ -3700,6 +3718,13 @@ static const struct shell_cmd btshell_commands[] = {
         .help = &phy_read_help,
 #endif
     },
+    {
+       .sc_cmd = "print",
+       .sc_cmd_func = cmd_print,
+#if MYNEWT_VAL(SHELL_CMD_HELP)
+       .help = NULL,
+#endif
+   },
     { NULL, NULL, NULL },
 };
 
