@@ -1260,13 +1260,12 @@ ble_ll_conn_hci_set_data_len(uint8_t *cmdbuf, uint8_t *rspbuf, uint8_t *rsplen)
             rc = BLE_ERR_SUCCESS;
         }
 
-        /* XXX: should I check against max supported? I think so */
+        if (connsm->max_tx_time != txtime || connsm->max_tx_octets != txoctets) {
+            connsm->max_tx_time = txtime;
+            connsm->max_tx_octets = txoctets;
 
-        /*
-         * XXX: For now; we will simply ignore what the host asks as we are
-         * allowed to do so by the spec. If we implement this and something
-         * changes we need to send data length change event.
-         */
+            ble_ll_ctrl_initiate_dle(connsm);
+        }
     }
 
     put_le16(rspbuf, handle);
