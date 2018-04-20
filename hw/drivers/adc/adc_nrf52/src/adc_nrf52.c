@@ -46,7 +46,9 @@ static void
 nrf52_saadc_event_handler(const nrfx_saadc_evt_t *event)
 {
     nrfx_saadc_done_evt_t *done_ev;
-    int rc;
+    nrfx_saadc_limit_evt_t *limit_ev;
+    uint8_t ev_type;
+    int rc = 0;
 
     if (global_adc_dev == NULL) {
         ++nrf52_saadc_stats.saadc_events_failed;
@@ -55,17 +57,33 @@ nrf52_saadc_event_handler(const nrfx_saadc_evt_t *event)
 
     ++nrf52_saadc_stats.saadc_events;
 
-    /* Right now only data reads supported, assert for unknown event
-     * type.
+    /* Right now only data reads and limit is supported,
+     * assert for unknown event type.
      */
-    assert(event->type == NRFX_SAADC_EVT_DONE);
+    assert(event->type == NRFX_SAADC_EVT_DONE ||
+           event->type == NRFX_SAADC_EVT_LIMIT);
 
-    done_ev = (nrfx_saadc_done_evt_t * const) &event->data.done;
+    if (event->type == NRFX_SAADC_EVT_DONE) {
+        done_ev = (nrfx_saadc_done_evt_t * const) &event->data.done;
 
-    rc = global_adc_dev->ad_event_handler_func(global_adc_dev,
-            global_adc_dev->ad_event_handler_arg,
-            ADC_EVENT_RESULT, done_ev->p_buffer,
-            done_ev->size * sizeof(nrf_saadc_value_t));
+        rc = global_adc_dev->ad_event_handler_func(global_adc_dev,
+                global_adc_dev->ad_event_handler_arg,
+                ADC_EVENT_RESULT, done_ev->p_buffer,
+                done_ev->size * sizeof(nrf_saadc_value_t));
+    } else if (event->type == NRFX_SAADC_EVT_LIMIT) {
+        limit_ev = (nrfx_saadc_limit_evt_t * const) &event->data.limit;
+
+        if (limit_ev->limit_type == NRF_SAADC_LIMIT_LOW) {
+            ev_type = ADC_EVENT_LIMIT_LOW;
+        } else {
+            ev_type = ADC_EVENT_LIMIT_HIGH;
+        }
+        /* As data we are sending channel number */
+        rc = global_adc_dev->ad_event_handler_func(global_adc_dev,
+                                           global_adc_dev->ad_event_handler_arg,
+                                           ev_type, &limit_ev->channel, 1);
+    }
+
     if (rc != 0) {
         ++nrf52_saadc_stats.saadc_events_failed;
     }
@@ -316,6 +334,31 @@ nrf52_adc_sample(struct adc_dev *dev)
     return (0);
 }
 
+static int
+nrf52_adc_set_channel_limits(struct adc_dev *dev, uint8_t cnum,
+                             int limit_low, int limit_high)
+{
+    int16_t low;
+    int16_t high;
+    uint16_t max_val;
+
+    /* For now we support only NRF_SAADC_MODE_SINGLE_ENDED so don't want
+     * values < 0
+     */
+    if ((limit_high > dev->ad_chans[cnum].c_refmv) ||
+        (limit_low >= limit_high) ||
+        (limit_low < 0 || limit_high < 0)) {
+        return OS_EINVAL;
+    }
+
+    max_val = (2 << dev->ad_chans[cnum].c_res);
+    low = (limit_low * max_val) / dev->ad_chans[cnum].c_refmv;
+    high = (limit_high * max_val) / dev->ad_chans[cnum].c_refmv;
+
+    nrfx_saadc_limits_set(cnum, low, high);
+
+    return 0;
+}
 /**
  * Blocking read of an ADC channel, returns result as an integer.
  */
@@ -388,6 +431,7 @@ nrf52_adc_dev_init(struct os_dev *odev, void *arg)
     af->af_configure_channel = nrf52_adc_configure_channel;
     af->af_sample = nrf52_adc_sample;
     af->af_read_channel = nrf52_adc_read_channel;
+    af->af_set_channel_limits = nrf52_adc_set_channel_limits;
     af->af_set_buffer = nrf52_adc_set_buffer;
     af->af_release_buffer = nrf52_adc_release_buffer;
     af->af_read_buffer = nrf52_adc_read_buffer;

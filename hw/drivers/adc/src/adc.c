@@ -87,3 +87,20 @@ adc_event_handler_set(struct adc_dev *dev, adc_event_handler_func_t func,
     return (0);
 }
 
+int
+adc_chan_set_limits(struct adc_dev * dev, uint8_t cnum, int limit_low,
+                    int limit_high)
+{
+    assert(dev->ad_funcs.af_read_channel != NULL);
+
+    if (cnum >= dev->ad_chan_count) {
+        return (EINVAL);
+    }
+
+    if (!dev->ad_chans[cnum].c_configured) {
+        return (EINVAL);
+    }
+
+    return (dev->ad_funcs.af_set_channel_limits(dev, cnum, limit_low, limit_high));
+}
+

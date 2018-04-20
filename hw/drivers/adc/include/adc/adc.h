@@ -33,7 +33,10 @@ struct adc_dev;
  */
 typedef enum {
     /* This event represents the result of an ADC run. */
-    ADC_EVENT_RESULT = 0
+    ADC_EVENT_RESULT = 0,
+    ADC_EVENT_LIMIT_LOW,
+    ADC_EVENT_LIMIT_HIGH
+
 } adc_event_type_t;
 
 /**
@@ -72,6 +75,10 @@ typedef int (*adc_configure_channel_func_t)(struct adc_dev *dev, uint8_t,
  * @return 0 on success, non-zero error code on failure
  */
 typedef int (*adc_sample_func_t)(struct adc_dev *);
+
+
+/* TODO */
+typedef int (*adc_set_limits_func_t)(struct adc_dev *, uint8_t, int, int);
 
 /**
  * Blocking read of an ADC channel.  This is implemented by the HW specific
@@ -140,6 +147,7 @@ struct adc_driver_funcs {
     adc_configure_channel_func_t af_configure_channel;
     adc_sample_func_t af_sample;
     adc_read_channel_func_t af_read_channel;
+    adc_set_limits_func_t af_set_channel_limits;
     adc_buf_set_func_t af_set_buffer;
     adc_buf_release_func_t af_release_buffer;
     adc_buf_read_func_t af_read_buffer;
@@ -167,7 +175,8 @@ int adc_chan_config(struct adc_dev *, uint8_t, void *);
 int adc_chan_read(struct adc_dev *, uint8_t, int *);
 int adc_event_handler_set(struct adc_dev *, adc_event_handler_func_t,
         void *);
-
+int adc_chan_set_limits(struct adc_dev * dev, uint8_t chan_num,
+                        int limit_low, int limit_high);
 /**
  * Sample the device specified by dev.  This is used in non-blocking mode
  * to generate samples into the event buffer.
